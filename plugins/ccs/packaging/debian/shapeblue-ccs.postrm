@@ -1,0 +1,16 @@
+#!/bin/bash
+
+set -e
+
+case "$1" in
+    remove|purge)
+        if [ -f /usr/share/cloudstack-management/webapp/plugins/plugins.js ]; then
+            if grep -q ccs /usr/share/cloudstack-management/webapp/plugins/plugins.js; then
+                echo "Disabling CloudStack Container Service UI Plugin"
+                sed -i  "/'ccs'/d" /usr/share/cloudstack-management/webapp/plugins/plugins.js
+            fi
+        fi
+        ;;
+esac
+
+exit 0

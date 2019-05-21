@@ -1628,7 +1628,7 @@ public class ContainerClusterManagerImpl extends ManagerBase implements Containe
             return false;
         }
 
-        if (networkOffering.getEgressDefaultPolicy() == false) {
+        if (!networkOffering.isEgressDefaultPolicy()) {
             s_logger.warn("Network offering :" + networkOfferingName + "has egress default policy turned off should be on to provision container cluster.");
             return false;
         }

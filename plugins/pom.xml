@@ -59,6 +59,7 @@
         <module>api/solidfire-intg-test</module>
 
         <module>ca/root-ca</module>
+        <module>ccs</module>
 
         <module>database/quota</module>
 

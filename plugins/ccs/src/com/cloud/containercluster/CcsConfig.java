@@ -22,9 +22,9 @@ public enum CcsConfig {
 
 
     ContainerClusterTemplateName("Advanced", ManagementServer.class, String.class, "cloud.container.cluster.template.name", null, "name of the template used for creating containe cluster", null, null),
-    ContainerClusterMasterCloudConfig("Advanced", ManagementServer.class, String.class, "cloud.container.cluster.master.cloudconfig", null, "file location path of the cloud config used for creating       container cluster master node", null, null),
-    ContainerClusterNodeCloudConfig("Advanced", ManagementServer.class, String.class, "cloud.container.cluster.node.cloudconfig", null, "file location path of the cloud config used for creating           container cluster node", null, null),
-    ContainerClusterNetworkOffering("Advanced", ManagementServer.class, String.class, "cloud.container.cluster.network.offering", null, "Name of the network offering that will be used to create           isolated network in which container cluster VMs will be launched.", null, null);
+    ContainerClusterMasterCloudConfig("Advanced", ManagementServer.class, String.class, "cloud.container.cluster.master.cloudconfig", null, "file location path of the cloud config used for creating container cluster master node", null, null),
+    ContainerClusterNodeCloudConfig("Advanced", ManagementServer.class, String.class, "cloud.container.cluster.node.cloudconfig", null, "file location path of the cloud config used for creating container cluster node", null, null),
+    ContainerClusterNetworkOffering("Advanced", ManagementServer.class, String.class, "cloud.container.cluster.network.offering", null, "Name of the network offering that will be used to create isolated network in which container cluster VMs will be launched.", null, null);
 
 
     private final String _category;

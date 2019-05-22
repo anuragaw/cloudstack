@@ -18,6 +18,7 @@
   cloudStack.plugins = [
     //'testPlugin',
     'cloudian',
-    'quota'
+    'quota',
+    'ccs'
   ];
 }(jQuery, cloudStack));

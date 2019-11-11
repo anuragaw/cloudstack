@@ -9814,7 +9814,8 @@
                                     indicator: {
                                         'Running': 'on',
                                         'Stopped': 'off',
-                                        'Error': 'off'
+                                        'Error': 'off',
+                                        'Alert': 'warning'
                                     }
                                 },
                                 requiresupgrade: {
@@ -9836,6 +9837,7 @@
                                 }
 
                                 var data2 = {
+                                    includehealthcheckresults: true
                                     // forvpc: false
                                 };
 
@@ -9879,47 +9881,93 @@
                                         json.listroutersresponse.router:[];
 
                                         $(items).map(function (index, item) {
+                                            if (item.state && item.state === 'Running' && item.healthcheckresults && item.healthcheckresults.details) {
+                                                try {
+                                                    if (!item.healthcheckresults.success || item.healthcheckresults.success.toLowerCase() !== 'true') {
+                                                        item.state = 'Alert'
+                                                    } else {
+                                                        var hcData = JSON.parse(item.healthcheckresults.details)
+                                                        var checkTypes = ['basic', 'advance']
+                                                        $.each(checkTypes, function (cId, checkType) {
+                                                            if (hcData[checkType] && $.type(hcData[checkType]) === "object") {
+                                                                var checks = hcData[checkType]
+                                                                $.each(Object.keys(checks), function (idx, key) {
+                                                                    if (key !== 'lastRun' && (!checks[key].success || checks[key].success.toLowerCase() !== 'true')) {
+                                                                        item.state = 'Alert'
+                                                                    }
+                                                                })
+                                                            }
+                                                        })
+                                                    }
+                                                } catch (ex) {
+                                                    console.error('Unable to parse health check results')
+                                                    console.log(item)
+                                                }
+                                            }
                                             routers.push(item);
                                         });
 
-                                /*
-                                 * In project view, the first listRotuers API(without projectid=-1) will return the same objects as the second listRouters API(with projectid=-1),
-                                 * because in project view, all API calls are appended with projectid=[projectID].
-                                 * Therefore, we only call the second listRouters API(with projectid=-1) in non-project view.
-                                 */
-                                if (cloudStack.context && cloudStack.context.projects == null) { //non-project view
-                                    /*
-                                     * account parameter(account+domainid) and project parameter(projectid) are not allowed to be passed together to listXXXXXXX API.
-                                     * So, remove account parameter(account+domainid) from data2
-                                     */
-                                    if ("account" in data2) {
-                                        delete data2.account;
-                                    }
-                                    if ("domainid" in data2) {
-                                        delete data2.domainid;
-                                    }
-
-                                    $.ajax({
-                                            url: createURL("listRouters&listAll=true&page=" + args.page + "&pagesize=" + pageSize + array1.join("") + "&projectid=-1"),
-                                            data: data2,
-                                        async: false,
-                                            success: function (json) {
-                                                var items = json.listroutersresponse.router ?
-                                                json.listroutersresponse.router:[];
-
-                                                $(items).map(function (index, item) {
-                                                    routers.push(item);
-                                                });
-                                        }
-                                    });
-                                }
-
-                                                args.response.success({
-                                                    actionFilter: routerActionfilter,
-                                                    data: $(routers).map(mapRouterType)
-                                                });
+                                        /*
+                                         * In project view, the first listRotuers API(without projectid=-1) will return the same objects as the second listRouters API(with projectid=-1),
+                                         * because in project view, all API calls are appended with projectid=[projectID].
+                                         * Therefore, we only call the second listRouters API(with projectid=-1) in non-project view.
+                                         */
+                                        if (cloudStack.context && cloudStack.context.projects == null) { //non-project view
+                                            /*
+                                             * account parameter(account+domainid) and project parameter(projectid) are not allowed to be passed together to listXXXXXXX API.
+                                             * So, remove account parameter(account+domainid) from data2
+                                             */
+                                            if ("account" in data2) {
+                                                delete data2.account;
                                             }
+                                            if ("domainid" in data2) {
+                                                delete data2.domainid;
+                                            }
+
+                                            $.ajax({
+                                                url: createURL("listRouters&listAll=true&page=" + args.page + "&pagesize=" + pageSize + array1.join("") + "&projectid=-1"),
+                                                data: data2,
+                                                async: false,
+                                                success: function (json) {
+                                                    var items = json.listroutersresponse.router ?
+                                                    json.listroutersresponse.router:[];
+
+                                                    $(items).map(function (index, item) {
+                                                        if (item.state && item.state === 'Running' && item.healthcheckresults && item.healthcheckresults.details) {
+                                                            try {
+                                                                if (!item.healthcheckresults.success || item.healthcheckresults.success.toLowerCase() !== 'true') {
+                                                                    item.state = 'Alert'
+                                                                } else {
+                                                                    var hcData = JSON.parse(item.healthcheckresults.details)
+                                                                    var checkTypes = ['basic', 'advance']
+                                                                    $.each(checkTypes, function (cId, checkType) {
+                                                                        if (hcData[checkType] && $.type(hcData[checkType]) === "object") {
+                                                                            var checks = hcData[checkType]
+                                                                            $.each(Object.keys(checks), function (idx, key) {
+                                                                                if (key !== 'lastRun' && (!checks[key].success || checks[key].success.toLowerCase() !== 'true')) {
+                                                                                    item.state = 'Alert'
+                                                                                }
+                                                                            })
+                                                                        }
+                                                                    })
+                                                                }
+                                                            } catch (ex) {
+                                                                console.error('Unable to parse health check results')
+                                                                console.log(item)
+                                                            }
+                                                        }
+                                                        routers.push(item);
+                                                    });
+                                                }
+                                            });
+                                        }
+
+                                        args.response.success({
+                                            actionFilter: routerActionfilter,
+                                            data: $(routers).map(mapRouterType)
                                         });
+                                    }
+                                });
                             },
                             detailView: {
                                 name: 'label.virtual.appliance.details',
@@ -10390,6 +10438,79 @@
                                                 },
                                                 width: 820,
                                                 height: 640
+                                            }
+                                        }
+                                    },
+
+                                    healthChecks: {
+                                        label: 'label.action.router.health.checks',
+                                        createForm: {
+                                            title: 'label.action.router.health.checks',
+                                            desc: 'message.action.router.health.checks',
+                                            fields: {
+                                                performfreshchecks: {
+                                                    label: 'label.perform.fresh.checks',
+                                                    isBoolean: true
+                                                }
+                                            }
+                                        },
+                                        action: function (args) {
+                                            var data = {
+                                                    'id': args.context.routers[0].id,
+                                                    'performfreshchecks': (args.data.performfreshchecks === 'on')
+                                                };
+                                            $.ajax({
+                                                url: createURL('getRouterHealthCheckResults'),
+                                                dataType: 'json',
+                                                data: data,
+                                                async: false,
+                                                success: function (json) {
+                                                    var hcdata = json.getrouterhealthcheckresultsresponse
+                                                    $('div.overlay').remove()
+                                                    $('.loading-overlay').remove()
+                                                    $('div.loading-overlay').remove()
+                                                    var textArea = $('<textarea cols=60 rows=15 style="text-align: left;">')
+                                                    var originalDetails = hcdata.healthData.details
+                                                    try {
+                                                        hcdata.healthData.details = JSON.parse(originalDetails)
+                                                    } catch (e) {
+                                                        hcdata.healthData.details = originalDetails
+                                                    }
+                                                    textArea.val(JSON.stringify(hcdata, null, 2))
+                                                    cloudStack.applyDefaultZindexAndOverlayOnJqueryDialogAndRemoveCloseButton(
+                                                        textArea.dialog({
+                                                            title: _l('label.status'),
+                                                            dialogClass: 'notice',
+                                                            width: 566,
+                                                            closeOnEscape: false,
+                                                            buttons: [{
+                                                                text: _l('label.cancel'),
+                                                                'class': 'cancel',
+                                                                click: function() {
+                                                                    $(this).dialog('destroy');
+                                                                    $('div.overlay').remove();
+                                                                    $('.hovered-elem').hide();
+                                                                }
+                                                            }, {
+                                                                text: _l('label.copy.text'),
+                                                                'class': 'ok',
+                                                                click: function() {
+                                                                    textArea.select();
+                                                                    document.execCommand('copy');
+                                                                    $(this).dialog('destroy');
+                                                                    $('div.overlay').remove();
+                                                                    $('.hovered-elem').hide();
+                                                                }
+                                                            }]
+                                                        })
+                                                    )
+                                                    args.response.success();
+                                                }
+                                            });
+                                        },
+                                        messages: {
+                                            notification: function(args) {
+                                                return 'label.action.router.health.checks'
                                             }
                                         }
                                     }
@@ -22070,6 +22191,7 @@
             if (isAdmin()) {
                 allowedActions.push("migrate");
                 allowedActions.push("diagnostics");
+                allowedActions.push("healthChecks");
             }
         } else if (jsonObj.state == 'Starting') {
             if (isAdmin()) {
